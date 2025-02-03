@@ -1,0 +1,423 @@
+<template>
+  <div class="page" @swipe="back">
+    <div class="page" @click="nextDialogue">
+      <image src="/common/{{Img}}"></image>
+      <image src="/common/{{gameData.scenes[currentScene].Img}}" style="top:{{gameData.scenes[currentScene].ImgTop}}px;left:{{gameData.scenes[currentScene].ImgLeft}}px;position: absolute;" if="{{gameData.scenes[currentScene].Img !== undefined}}"></image>
+      <image style="position: absolute;top: 315px;left: 0;" src="/common/text_bg.png" if="{{gameData.scenes[currentScene].choices == undefined && Img !== 'bg.png'}}"></image>
+      <text style="position: absolute;top: 278px;left: 8px;font-size: 28px;color: #FFFFFF;font-weight: bold" if="{{gameData.scenes[currentScene].choices == undefined && Img !== 'bg.png'}}">{{character}}</text>
+      <scroll scroll-y="true" bounces="true" class="scroll" if="{{gameData.scenes[currentScene].choices == undefined && Img !== 'bg.png'}}">
+        <text style="color: #FFFFFF;font-weight: bold;width: 100%;text-align: left;font-size: {{settings.textSize}}px;">{{showText}}</text>
+      </scroll>
+    </div>
+    <!--选项页-->
+    <div class="page" style="position: absolute;" if="{{gameData.scenes[currentScene].choices !== undefined}}">
+      <!--选项1-->
+      <text class="choice" @click="selectChoice(0)">{{gameData.scenes[currentScene].choices[0].text}}</text>
+      <!--选项2-->
+      <text class="choice" style="top: 210px;" @click="selectChoice(1)">{{gameData.scenes[currentScene].choices[1].text}}</text>
+    </div>
+    <!--菜单页-->
+    <div class="page" style="position: absolute;flex-wrap: nowrap;flex-direction: column;justify-content: center;align-items: center;background-color: #ffffff;" if="{{menu}}">
+      <text class="menu-btn" @click="toRecoveryPage(1)">保存</text>
+      <text class="menu-btn" @click="toRecoveryPage(2)">加载</text>
+      <text class="menu-btn" @click="skipScene(1)">跳过场景</text>
+      <text class="menu-btn" @click="skipChapter()">跳过章节</text>
+      <text class="menu-btn" @click="back('m')">返回</text>
+    </div>
+    <div class="page" style="position: absolute;background-color: #ffffff;" if="{{recovery===1}}" @swipe="back()">
+      <scroll scroll-y="true" bounces="true" class="scroll1 page">
+        <text class="menu-btn" for="{{recoveryData}}" style="font-size: 30px;" @click="saveRecoveryData($idx)">存档{{$idx+1}}</text>
+        <text class="menu-btn" @click="saveRecoveryData('new')">+</text>
+      </scroll>
+    </div>
+    <div class="page" style="position: absolute;background-color: #ffffff;" if="{{recovery===2}}" @swipe="back()">
+      <scroll scroll-y="true" bounces="true" class="scroll1 page">
+        <text class="menu-btn" for="{{recoveryData}}" style="font-size: 30px;" @click="loadRecoveryData($idx)">存档{{$idx+1}}</text>
+      </scroll>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from '@system.router'
+import storage from '@system.storage';
+import prompt from '@system.prompt';
+import b999 from '../../common/b999.json'
+import b101 from '../../common/b101.json'
+import b102 from '../../common/b102.json'
+import b103 from '../../common/b103.json'
+import b111 from '../../common/b111.json'
+import b112 from '../../common/b112.json'
+import b113 from '../../common/b113.json'
+import b114 from '../../common/b114.json'
+import b121 from '../../common/b121.json'
+// import b122 from '../../common/b122.json'
+// import b123 from '../../common/b123.json'
+// import b124 from '../../common/b124.json'
+// import b200 from '../../common/b200.json'
+// import b201 from '../../common/b201.json'
+// import b202 from '../../common/b202.json'
+// import b203 from '../../common/b203.json'
+// import b204 from '../../common/b204.json'
+// import b205 from '../../common/b205.json'
+// import b206 from '../../common/b206.json'
+// import b207 from '../../common/b207.json'
+// import b301 from '../../common/b301.json'
+// import b302 from '../../common/b302.json'
+// import b303 from '../../common/b303.json'
+// import b304 from '../../common/b304.json'
+// import b401 from '../../common/b401.json'
+// import b402 from '../../common/b402.json'
+// import b403 from '../../common/b403.json'
+// import b404 from '../../common/b404.json'
+// import b405 from '../../common/b405.json'
+// import b406 from '../../common/b406.json'
+// import b407 from '../../common/b407.json'
+// import b501 from '../../common/b501.json'
+// import b601 from '../../common/b601.json'
+// import b701 from '../../common/b701.json'
+
+export default {
+  private: {
+    gameData: {
+      scenes: [
+
+      ]
+    },
+    index: 0,
+    canContinue: true,
+    currentScene: 0,
+    currentDialogue: 0,
+    Img: 'bg.png',
+    showText: '',
+    character: '',
+    settings: {
+      textSpeed: 40,
+      textSize: 22
+    },
+    chapter: 0,
+    menu: false,
+    recovery: 0,
+    choice: [],
+    recoveryData: [],
+    load: null,
+  },
+  onInit(){
+    storage.get({
+      key: 'recoveryData',
+      success: (data) => {
+        if(data){
+          this.recoveryData = JSON.parse(data);
+          if(this.load){this.loadRecoveryData(this.load)}
+          else{
+            this.loadData(this.chapter);
+            this.loadScene(this.currentScene);
+          }
+        }else{
+          this.loadData(this.chapter);
+          this.loadScene(this.currentScene);
+        }
+      },
+      fail:()=>{},
+    });
+    storage.get({
+      key: 'settings',
+      success: (data) => {
+        if(data){
+          this.settings = JSON.parse(data);
+        }
+      },
+      fail:()=>{},
+    });
+  },
+  loadData(chapter){
+    switch(chapter){
+      case 0:
+        this.gameData.scenes = b999;
+        break;
+      case 1:
+        this.gameData.scenes = b101;
+        break;
+      case 2:
+        this.gameData.scenes = b102;
+        break;
+      case 3:
+        this.gameData.scenes = b103;
+        break;
+      case 4:
+        this.gameData.scenes = b111;
+        break;
+      case 5:
+        this.gameData.scenes = b112;
+        break;
+      case 6:
+        this.gameData.scenes = b113;
+        break;
+      case 7:
+        this.gameData.scenes = b114;
+        break;
+      case 8:
+        this.gameData.scenes = b121;
+        break;
+      default:
+        prompt.showToast({message: '敬请期待'})
+      // case 9:
+      //   this.gameData.scenes = b122;
+      //   break;
+      // case 10:
+      //   this.gameData.scenes = b123;
+      //   break;
+      // case 11:
+      //   this.gameData.scenes = b124;
+      //   break;
+      // case 12:
+      //   this.gameData.scenes = b200;
+      //   break;
+      // case 13:
+      //   this.gameData.scenes = b201;
+      //   break;
+      // case 14:
+      //   this.gameData.scenes = b202;
+      //   break;
+      // case 15:
+      //   this.gameData.scenes = b203;
+      //   break;
+      // case 16:
+      //   this.gameData.scenes = b204;
+      //   break;
+      // case 17:
+      //   this.gameData.scenes = b205;
+      //   break;
+      // case 18:
+      //   this.gameData.scenes = b206;
+      //   break;
+      // case 19:
+      //   this.gameData.scenes = b207;
+      //   break;
+      // case 20:
+      //   this.gameData.scenes = b301;
+      //   break;
+      // case 21:
+      //   this.gameData.scenes = b302;
+      //   break;
+      // case 22:
+      //   this.gameData.scenes = b303;
+      //   break;
+      // case 23:
+      //   this.gameData.scenes = b304;
+      //   break;
+      // case 24:
+      //   this.gameData.scenes = b401;
+      //   break;
+      // case 25:
+      //   this.gameData.scenes = b402;
+      //   break;
+      // case 26:
+      //   this.gameData.scenes = b403;
+      //   break;
+      // case 27:
+      //   this.gameData.scenes = b404;
+      //   break;
+      // case 28:
+      //   this.gameData.scenes = b405;
+      //   break;
+      // case 29:
+      //   this.gameData.scenes = b406;
+      //   break;
+      // case 30:
+      //   this.gameData.scenes = b407;
+      //   break;
+      // case 31:
+      //   this.gameData.scenes = b501;
+      //   break;
+      // case 32:
+      //   this.gameData.scenes = b601;
+      //   break;
+      // case 33:
+      //   this.gameData.scenes = b701;
+      //   break;
+    }
+  },
+  // 显示背景图
+  showBackground(image) {
+    this.Img = image;
+  },
+  // 显示对话
+  showDialogue(dialogue) {
+    this.showText = '';
+    this.character = dialogue.character;
+    this.canContinue = false;
+    this.index = 0;
+    this.zhuzi(dialogue.text);
+  },
+  zhuzi(text){
+    if (this.index < text.length){
+      this.showText += text.charAt(this.index);
+      this.index++;
+      setTimeout(() => {this.zhuzi(text);}, this.settings.textSpeed);
+    }
+    else{this.canContinue=true;}
+  },
+  // 加载场景
+  loadScene(sceneIndex) {
+    const scene = this.gameData.scenes[sceneIndex];
+    this.showBackground(scene.background);
+    this.currentDialogue = 0;
+    if(scene.choices){return}
+    this.showDialogue(scene.dialogues[this.currentDialogue]);
+  },
+  // 下一段对话
+  nextDialogue() {
+    if (this.canContinue) {
+      this.canContinue = false;
+      const scene = this.gameData.scenes[this.currentScene];
+      if (this.currentDialogue < scene.dialogues.length - 1) {
+          this.currentDialogue++;
+          this.showDialogue(scene.dialogues[this.currentDialogue]);
+      } else if (this.currentScene < this.gameData.scenes.length - 1) {
+        if(scene.dialogues[this.currentDialogue].toScenes !== undefined){
+          console.log('跳转场景[选项]')
+          this.currentScene += scene.dialogues[this.currentDialogue].toScenes;
+          this.loadScene(this.currentScene);
+        }else{
+          console.log('跳转场景')
+          this.currentScene++;
+          this.loadScene(this.currentScene);
+        }
+      } else {
+        this.Img = 'bg.png';
+        setTimeout(() => {
+          this.chapter++;
+          this.loadData(this.chapter);
+          this.currentScene = 0;
+          this.currentDialogue = 0;
+          this.loadScene(this.currentScene);
+        }, 3000);
+      }
+    }
+  },
+  back(a){
+    if(a=='m'&&this.menu){this.menu = false}
+    else if(a.direction=='right'&&this.recovery!==0){this.recovery = 0}
+    else if(a.direction=='right'||a=='e'){router.push({uri: "/pages/index"})}
+    else if(a.direction=='left'){this.menu = true}
+  },
+  // 选择选项
+  selectChoice(choiceIndex) {
+    console.log('选择选项', choiceIndex)
+    this.choice.push(choiceIndex);
+    const nextSceneIndex = this.gameData.scenes[this.currentScene].choices[choiceIndex].nextScene;
+    this.currentScene += nextSceneIndex;
+    this.loadScene(this.currentScene);
+  },
+  toRecoveryPage(a){
+    this.recovery = a;
+  },
+  saveRecoveryData(idx){
+    const data = {
+      chapter: this.chapter,
+      currentScene: this.currentScene,
+      currentDialogue: this.currentDialogue,
+      choice: this.choice,
+    }
+    if(idx === 'new'){
+      this.recoveryData.push(data);
+    }else{
+      this.recoveryData[idx] = data;
+    }
+    this.saveData()
+  },
+  loadRecoveryData(idx){
+    const data = this.recoveryData[idx];
+    console.log('加载存档', data)
+    this.chapter = data.chapter;
+    this.currentScene = data.currentScene;
+    this.currentDialogue = data.currentDialogue;
+    this.choice = data.choice;
+    this.recovery = 0;
+    this.menu = false;
+    this.loadData(this.chapter);
+    this.loadScene(this.currentScene);
+  },
+  skipScene(a){
+    if(this.gameData.scenes[this.currentScene].choices==undefined){
+      this.currentScene+=a;
+      this.loadScene(this.currentScene);
+      this.menu = false;
+    }else{
+      this.menu = false;
+      prompt.showToast({message: '该场景有选项，无法跳过'})
+    }
+  },
+  skipChapter(){
+    this.Img = 'bg.png';
+    this.menu = false;
+    setTimeout(() => {
+      this.chapter++;
+      this.loadData(this.chapter);
+      this.currentScene = 0;
+      this.currentDialogue = 0;
+      this.loadScene(this.currentScene);
+    }, 3000);
+  },
+  saveData(){
+    storage.set({
+      key: 'recoveryData',
+      value: JSON.stringify(this.recoveryData),
+      success: () => {},
+      fail:()=>{},
+    })
+  }
+}
+</script>
+
+<style>
+.page {
+  width: 336px;
+  height: 480px;
+}
+.scroll{
+  position: absolute;
+  bottom: 0;
+  top: 325px;
+  left: 8px;
+  right: 0;
+  width: 328px;
+  height: 155px;
+  overflow: hidden;
+  flex-wrap: wrap;
+}
+.scroll1{
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  align-items: center;
+}
+.choice {
+  position: absolute;
+  width: 250px;
+  height: 61px;
+  left: 43px;
+  top: 100px;
+  background-color: rgba(80, 192, 231, 0.7);
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+.menu-btn {
+  width: 250px;
+  height: 61px;
+  background-color: rgba(80, 192, 231, 0.7);
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+</style>

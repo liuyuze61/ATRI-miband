@@ -1,0 +1,206 @@
+<template>
+  <div class="page" @swipe="ban">
+    <image src="/common/bg.png"></image>
+    <text class="btn" style="top: 255px;" @click="toPage('detail')">START</text>
+    <text class="btn" style="top: 303px;" @click="toRecovery()">LOAD</text>
+    <text class="btn" style="top: 351px;" @click="toSettings()">SYSTEM</text>
+    <text class="btn" style="top: 399px;" @click="exit">EXIT</text>
+    <div class="page" style="position: absolute;background-color: #ffffff;" if="{{recovery}}" @swipe="back()">
+      <scroll scroll-y="true" bounces="true" class="scroll1 page">
+        <text class="menu-btn" for="{{recoveryData}}" style="font-size: 30px;" @click="loadRecoveryData($idx)">存档{{$idx+1}}</text>
+      </scroll>
+    </div>
+    <div class="page" style="position: absolute;" if="{{settingsPage}}" @swipe="ban()">
+      <image src="/common/ev000b.png"></image>
+      <image style="position: absolute;top: 315px;left: 0;" src="/common/text_bg.png"></image>
+      <text class="text">显示速度({{settings.textSpeed}})：</text>
+      <slider class="slider" min="20" max="60" step="1" onchange="changeTextSpeed()"></slider>
+      <text class="text" style="top: 163px">文字大小({{settings.textSize}})：</text>
+      <slider class="slider" style="top: 217px" min="20" max="36" step="1" onchange="changeTextSize()"></slider>
+      <text class="text" style="top: 25px;left: 99px;" @click="saveSettings()">保存</text>
+      <text class="text" style="top: 25px;left: 189px;" @click="back()">退出</text>
+      <scroll scroll-y="true" bounces="true" class="scroll">
+        <text style="color: #FFFFFF;font-weight: bold;width: 100%;text-align: left;font-size: {{settings.textSize}}px;">{{showText}}</text>
+      </scroll>
+    </div>
+    <div class="page" style="position: absolute;flex-direction: column;align-items: center;background-color: #ffffff;" if="{{tips}}" @swipe="ban()">
+      <text style="font-size: 24px;color: #000000;">在"SYSTEM"中调整显示速度和文字大小</text>
+      <text style="font-size: 24px;color: #000000;">游戏中左滑进入菜单，右滑返回</text>
+      <text style="font-size: 24px;color: #000000;" @click="closeTips()">确定</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router";
+import storage from '@system.storage';
+
+export default {
+  private: {
+    recovery: false,
+    recoveryData: [],
+    settingsPage: false,
+    settings: {
+      textSpeed: 40,
+      textSize: 22
+    },
+    showText: '',
+    index: 0,
+    tips: false,
+  },
+  onInit(){
+    storage.get({
+      key: 'recoveryData',
+      success: (data) => {
+        if(data){
+          this.recoveryData = JSON.parse(data);
+        }
+      },
+      fail:()=>{},
+    });
+    storage.get({
+      key: 'settings',
+      success: (data) => {
+        if(data){
+          this.settings = JSON.parse(data);
+        }
+      },
+      fail:()=>{},
+    });
+    storage.get({
+      key: 'tips',
+      success: (data) => {
+        if(JSON.parse(data) !== 61){
+          this.tips = true;
+        }
+      },
+      fail:()=>{},
+    });
+  },
+  toPage(page) {
+    router.push({uri: `pages/${page}`})
+  },
+  exit(){
+    this.$app.exit()
+  },
+  ban(){
+    console.log('ban')
+  },
+  toRecovery(){
+    if(this.recoveryData.length>0){this.recovery = true}
+  },
+  toSettings(){
+    this.settingsPage = true;
+    this.zhuzi();
+  },
+  back(a){
+    if(a.direction=='right'&&this.recovery){this.recovery = false}
+    else if(this.settingsPage){this.settingsPage = false}
+  },
+  loadRecoveryData(idx){
+    router.push({
+      uri: `pages/detail`,
+      params:{load: idx}
+    })
+  },
+  changeTextSize(e){
+    this.settings.textSize = e.progress;
+  },
+  changeTextSpeed(e){
+    this.settings.textSpeed = e.progress;
+  },
+  zhuzi(){
+    const text = `Atri -My Dear Moments-\n文字显示样本`
+    if (this.index < text.length){
+      this.showText += text.charAt(this.index);
+      this.index++;
+      setTimeout(() => {this.zhuzi()}, this.settings.textSpeed)
+    }
+    else{
+      if(this.settingsPage){
+        setTimeout(() => {
+          this.index = 0;
+          this.showText = '';
+          this.zhuzi()
+        }, 2000);
+      }
+    }
+  },
+  saveSettings(){
+    storage.set({
+      key: 'settings',
+      value: JSON.stringify(this.settings),
+      success: () => {},
+      fail:()=>{},
+    })
+  },
+  closeTips(){
+    this.tips = false;
+    storage.set({
+      key: 'tips',
+      value: JSON.stringify(61),
+      success: () => {},
+      fail:()=>{},
+    })
+  },
+}
+</script>
+
+<style>
+.page {
+  width: 336px;
+  height: 480px;
+}
+.btn {
+  position: absolute;
+  font-size: 36px;
+  left: 32px;
+  font-weight: bold;
+  color: #0A55BC;
+}
+.scroll1{
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  align-items: center;
+}
+.menu-btn {
+  width: 250px;
+  height: 61px;
+  background-color: rgba(80, 192, 231, 0.7);
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.scroll{
+  position: absolute;
+  bottom: 0;
+  top: 325px;
+  left: 8px;
+  right: 0;
+  width: 328px;
+  height: 155px;
+  overflow: hidden;
+}
+.slider{
+    position: absolute;
+    width: 230px;
+    top: 125px;
+    left: 53px;
+}
+.text {
+  position: absolute;
+  font-size: 24px;
+  color: #FFFFFF;
+  top: 71px;
+  left: 18px;
+  font-weight: bold;
+}
+</style>

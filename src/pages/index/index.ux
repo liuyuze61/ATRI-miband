@@ -70,7 +70,11 @@ export default {
     storage.get({
       key: 'tips',
       success: (data) => {
-        if(JSON.parse(data) !== 61){
+        if(data){
+          if(JSON.parse(data) !== 61){
+            this.tips = true;
+          }
+        }else{
           this.tips = true;
         }
       },

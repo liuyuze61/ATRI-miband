@@ -1,10 +1,12 @@
 # ATRI-miband9P
-## how to build?
-follow <https://iot.mi.com/vela/quickapp>
-### download 
+## 小米开源文档
+<https://iot.mi.com/vela/quickapp>
+### 下载
 <https://www.bandbbs.cn/threads/15782/>
 #### 转换脚本
-用法：python convert_script.py input文件夹 output文件夹
+用法：
+
+ 	python convert_script.py input文件夹 output文件夹
 
 输入格式：
 

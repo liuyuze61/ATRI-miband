@@ -5,6 +5,7 @@ follow <https://iot.mi.com/vela/quickapp>
 <https://www.bandbbs.cn/threads/15782/>
 #### 转换脚本
 用法：python convert_script.py input文件夹 output文件夹
+
 输入格式：
 夏生	小时候练过。现在应该也能弹。不过的确，没有能教课的水平……
 竜司	那你为什么不早说啊！

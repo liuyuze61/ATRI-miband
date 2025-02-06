@@ -1,6 +1,8 @@
 <template>
   <div class="page" @swipe="ban">
     <image src="/common/bg.png"></image>
+    <image style="position: absolute;top: 0;left: 0;" if="{{trueEnd}}" src="/common/ATRI_TrueEnding.png"></image>
+    <text class="btn" style="top: 207px;" if="{{trueEnd}}" @click="loadRecoveryData('TE')">TRUE END</text>
     <text class="btn" style="top: 255px;" @click="toPage('detail')">START</text>
     <text class="btn" style="top: 303px;" @click="toRecovery()">LOAD</text>
     <text class="btn" style="top: 351px;" @click="toSettings()">SYSTEM</text>
@@ -16,17 +18,22 @@
       <text class="text">显示速度({{settings.textSpeed}})：</text>
       <slider class="slider" min="20" max="60" step="1" onchange="changeTextSpeed()"></slider>
       <text class="text" style="top: 163px">文字大小({{settings.textSize}})：</text>
-      <slider class="slider" style="top: 217px" min="20" max="36" step="1" onchange="changeTextSize()"></slider>
+      <slider class="slider" style="top: 217px" min="20" max="32" step="1" onchange="changeTextSize()"></slider>
       <text class="text" style="top: 25px;left: 99px;" @click="saveSettings()">保存</text>
       <text class="text" style="top: 25px;left: 189px;" @click="back()">退出</text>
       <scroll scroll-y="true" bounces="true" class="scroll">
         <text style="color: #FFFFFF;font-weight: bold;width: 100%;text-align: left;font-size: {{settings.textSize}}px;">{{showText}}</text>
       </scroll>
     </div>
-    <div class="page" style="position: absolute;flex-direction: column;align-items: center;background-color: #ffffff;" if="{{tips}}" @swipe="ban()">
-      <text style="font-size: 24px;color: #000000;">在"SYSTEM"中调整显示速度和文字大小</text>
-      <text style="font-size: 24px;color: #000000;">游戏中左滑进入菜单，右滑返回</text>
-      <text style="font-size: 24px;color: #000000;" @click="closeTips()">确定</text>
+    <div class="page" style="position: absolute;background-color: #ffffff;flex-wrap: nowrap;flex-direction: column;align-items: center;justify-content: center;" if="{{tips}}" @swipe="ban()">
+      <text class="font24">在"SYSTEM"中调整显示速度和文字大小</text>
+      <text class="font24">游戏中左滑进入菜单，右滑返回</text>
+      <text class="font24" style="color: #ff0000;">请勿反复点击START！耐心等待加载</text>
+      <text class="font24">---------------</text>
+      <text class="font24">制作：@liuyuze61</text>
+      <text class="font24">感谢：@Wxz226</text>
+      <text class="font24">---------------</text>
+      <text class="font24" style="color: #00a2ff;" @click="closeTips()">确定</text>
     </div>
   </div>
 </template>
@@ -34,6 +41,7 @@
 <script>
 import router from "@system.router";
 import storage from '@system.storage';
+import prompt from '@system.prompt';
 
 export default {
   private: {
@@ -47,6 +55,7 @@ export default {
     showText: '',
     index: 0,
     tips: false,
+    trueEnd: false,
   },
   onInit(){
     storage.get({
@@ -76,6 +85,17 @@ export default {
           }
         }else{
           this.tips = true;
+        }
+      },
+      fail:()=>{},
+    });
+    storage.get({
+      key: 'fin',
+      success: (data) => {
+        if(data){
+          const fin = JSON.parse(data);
+          console.log(fin)
+          if(fin.HE === true&&fin.BE === true){this.trueEnd = true}
         }
       },
       fail:()=>{},
@@ -134,7 +154,7 @@ export default {
     storage.set({
       key: 'settings',
       value: JSON.stringify(this.settings),
-      success: () => {},
+      success: () => {prompt.showToast({message: '保存成功'})},
       fail:()=>{},
     })
   },
@@ -206,5 +226,11 @@ export default {
   top: 71px;
   left: 18px;
   font-weight: bold;
+}
+.font24{
+  font-size: 24px;
+  color: #000000;
+  font-weight: bold;
+  text-align: center;
 }
 </style>

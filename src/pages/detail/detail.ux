@@ -421,9 +421,9 @@ export default {
         }else{
           fin = {"HE": false, "BE": false}
         }
-        if(a=="HE"){
+        if(a=="Happy Ending"){
           fin.HE = true;
-        }else if(a=="BE"){
+        }else if(a=="Bad Ending"){
           fin.BE = true;
         }
         this.saveFin(fin);

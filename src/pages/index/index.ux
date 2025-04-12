@@ -9,6 +9,7 @@
     <text class="btn" style="top: 399px;" @click="exit">EXIT</text>
     <div class="page" style="position: absolute;background-color: #ffffff;" if="{{recovery}}" @swipe="back()">
       <scroll scroll-y="true" bounces="true" class="scroll1 page">
+        <text class="menu-btn">点击读取存档</text>
         <text class="menu-btn" for="{{recoveryData}}" style="font-size: 30px;" @click="loadRecoveryData($idx)">存档{{$idx+1}}</text>
       </scroll>
     </div>
@@ -27,11 +28,11 @@
     </div>
     <div class="page" style="position: absolute;background-color: #ffffff;flex-wrap: nowrap;flex-direction: column;align-items: center;justify-content: center;" if="{{tips}}" @swipe="ban()">
       <text class="font24">在"SYSTEM"中调整显示速度和文字大小</text>
-      <text class="font24">游戏中左滑进入菜单，右滑返回</text>
+      <text class="font24">游戏中右滑进入菜单，左滑返回</text>
       <text class="font24" style="color: #ff0000;">请勿反复点击START！耐心等待加载</text>
       <text class="font24">---------------</text>
       <text class="font24">制作：@liuyuze61</text>
-      <text class="font24">感谢：@Wxz226</text>
+      <text class="font24">感谢：@Wxz226，@TLE</text>
       <text class="font24">---------------</text>
       <text class="font24" style="color: #00a2ff;" @click="closeTips()">确定</text>
     </div>

@@ -1,7 +1,7 @@
 {
   "package": "com.liuyuze61.ATRI",
   "name": "ATRI",
-  "versionName": "1.4.0",
+  "versionName": "1.5.0",
   "versionCode": 1,
   "minPlatformVersion": 1000,
   "icon": "/common/logo.png",
@@ -9,9 +9,10 @@
     "watch"
   ],
   "features": [
-    {
-      "name": "system.router"
-    }
+    {"name": "system.router"},
+    {"name": "system.storage"},
+    {"name": "system.prompt"},
+    {"name": "system.file"}
   ],
   "config": {
     "logLevel": "log",

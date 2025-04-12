@@ -21,12 +21,13 @@
       <text class="menu-btn" @click="toRecoveryPage(1)">保存</text>
       <text class="menu-btn" @click="toRecoveryPage(2)">加载</text>
       <text class="menu-btn" @click="skipScene(1)">跳过场景</text>
-      <text class="menu-btn" @click="back('m')">返回</text>
+      <text class="menu-btn" @click="skipChapter()">跳过章节</text>
+      <text class="menu-btn" @click="back('c')">返回</text>
+      <text class="menu-btn" @click="back('e')">返回主页</text>
     </div>
     <div class="page" style="position: absolute;background-color: #ffffff;" if="{{recovery===1}}" @swipe="back()">
       <scroll scroll-y="true" bounces="true" class="scroll1 page">
-        <text class="menu-btn">长按删除存档</text>
-        <text class="menu-btn">点击存档覆盖</text>
+        <text class="menu-btn">长按删除，点击覆盖</text>
         <text class="menu-btn" for="{{recoveryData}}" style="font-size: 30px;" @click="saveRecoveryData($idx)" @longpress="deleteRecoveryData($idx)">存档{{$idx+1}}</text>
         <text class="menu-btn" @click="saveRecoveryData('new')">+</text>
       </scroll>
@@ -37,7 +38,7 @@
         <text class="menu-btn" for="{{recoveryData}}" style="font-size: 30px;" @click="loadRecoveryData($idx)" @longpress="consoleData($idx)">存档{{$idx+1}}</text>
       </scroll>
     </div>
-    <div class="page" style="position: absolute;background-color: #ffffff;flex-wrap: nowrap;flex-direction: column;align-items: center;justify-content: center;" if="{{END != ''}}" @swipe="back()">
+    <div class="page" style="position: absolute;background-color: #ffffff;flex-wrap: nowrap;flex-direction: column;align-items: center;justify-content: center;" if="{{END != ''}}" @swipe="back('e')">
       <text style="font-size: 30px;text-align: center;color: #000000;">达成结局：{{END}}</text>
       <text style="font-size: 30px;text-align: center;color: #000000;" @click="back('e')">返回主页</text>
     </div>
@@ -48,40 +49,7 @@
 import router from '@system.router'
 import storage from '@system.storage';
 import prompt from '@system.prompt';
-import b999 from '../../common/b999.json'
-import b101 from '../../common/b101.json'
-import b102 from '../../common/b102.json'
-import b103 from '../../common/b103.json'
-import b111 from '../../common/b111.json'
-import b112 from '../../common/b112.json'
-import b113 from '../../common/b113.json'
-import b114 from '../../common/b114.json'
-import b121 from '../../common/b121.json'
-import b122 from '../../common/b122.json'
-import b123 from '../../common/b123.json'
-import b124 from '../../common/b124.json'
-import b200 from '../../common/b200.json'
-import b201 from '../../common/b201.json'
-import b202 from '../../common/b202.json'
-import b203 from '../../common/b203.json'
-import b204 from '../../common/b204.json'
-import b205 from '../../common/b205.json'
-import b206 from '../../common/b206.json'
-import b207 from '../../common/b207.json'
-import b301 from '../../common/b301.json'
-import b302 from '../../common/b302.json'
-import b303 from '../../common/b303.json'
-import b304 from '../../common/b304.json'
-import b401 from '../../common/b401.json'
-import b402 from '../../common/b402.json'
-import b403 from '../../common/b403.json'
-import b404 from '../../common/b404.json'
-import b405 from '../../common/b405.json'
-import b406 from '../../common/b406.json'
-import b407 from '../../common/b407.json'
-import b501 from '../../common/b501.json'
-import b601 from '../../common/b601.json'
-import b701 from '../../common/b701.json'
+import file from '@system.file';
 
 export default {
   private: {
@@ -108,6 +76,7 @@ export default {
     recoveryData: [],
     load: null,
     END: '',
+    chapterList:['b999','b101','b102','b103','b111','b112','b113','b114','b121','b122','b123','b124','b200','b201','b202','b203','b204','b205','b206','b207','b301','b302','b303','b304','b401','b402','b403','b404','b405','b406','b407','b501','b601','b701'],
   },
   onInit(){
     storage.get({
@@ -118,17 +87,14 @@ export default {
           if(this.load){
             if(this.load === 'TE'){
               this.loadData("TE");
-              this.loadScene(this.currentScene);
             }
             else{this.loadRecoveryData(this.load)}
           }
           else{
             this.loadData(this.chapter);
-            this.loadScene(this.currentScene);
           }
         }else{
           this.loadData(this.chapter);
-          this.loadScene(this.currentScene);
         }
       },
       fail:()=>{},
@@ -144,110 +110,21 @@ export default {
     });
   },
   loadData(chapter){
-    switch(chapter){
-      case 0:
-        this.gameData.scenes = b999;
-        break;
-      case 1:
-        this.gameData.scenes = b101;
-        break;
-      case 2:
-        this.gameData.scenes = b102;
-        break;
-      case 3:
-        this.gameData.scenes = b103;
-        break;
-      case 4:
-        this.gameData.scenes = b111;
-        break;
-      case 5:
-        this.gameData.scenes = b112;
-        break;
-      case 6:
-        this.gameData.scenes = b113;
-        break;
-      case 7:
-        this.gameData.scenes = b114;
-        break;
-      case 8:
-        this.gameData.scenes = b121;
-        break;
-      case 9:
-        this.gameData.scenes = b122;
-        break;
-      case 10:
-        this.gameData.scenes = b123;
-        break;
-      case 11:
-        this.gameData.scenes = b124;
-        break;
-      case 12:
-        this.gameData.scenes = b200;
-        break;
-      case 13:
-        this.gameData.scenes = b201;
-        break;
-      case 14:
-        this.gameData.scenes = b202;
-        break;
-      case 15:
-        this.gameData.scenes = b203;
-        break;
-      case 16:
-        this.gameData.scenes = b204;
-        break;
-      case 17:
-        this.gameData.scenes = b205;
-        break;
-      case 18:
-        this.gameData.scenes = b206;
-        break;
-      case 19:
-        this.gameData.scenes = b207;
-        break;
-      case 20:
-        this.gameData.scenes = b301;
-        break;
-      case 21:
-        this.gameData.scenes = b302;
-        break;
-      case 22:
-        this.gameData.scenes = b303;
-        break;
-      case 23:
-        this.gameData.scenes = b304;
-        break;
-      case 24:
-        this.gameData.scenes = b401;
-        break;
-      case 25:
-        this.gameData.scenes = b402;
-        break;
-      case 26:
-        this.gameData.scenes = b403;
-        break;
-      case 27:
-        this.gameData.scenes = b404;
-        break;
-      case 28:
-        this.gameData.scenes = b405;
-        break;
-      case 29:
-        this.gameData.scenes = b406;
-        break;
-      case 30:
-        this.gameData.scenes = b407;
-        break;
-      case 31:
-        this.gameData.scenes = b501;
-        break;
-      case 'BE':
-        this.gameData.scenes = b601;
-        break;
-      case 'TE':
-        this.gameData.scenes = b701;
-        break;
-    }
+    console.log('加载章节', this.chapterList[chapter])
+    if(chapter==='BE'){this.loadData(32);this.chapter='BE';return}
+    if(chapter==='TE'){this.loadData(33);this.chapter='TE';return}
+    file.readText({
+      uri: `/common/${this.chapterList[chapter]}.txt`,
+      success: (data)=> {
+        if(data){
+          this.gameData.scenes = JSON.parse(data.text);
+          this.loadScene(this.currentScene);
+        }
+      },
+      fail: (code)=> {
+        console.log(`handling fail, code = ${code}`);
+      }
+    });
   },
   // 显示背景图
   showBackground(image) {
@@ -310,7 +187,6 @@ export default {
             this.loadData(this.chapter);
             this.currentScene = 0;
             this.currentDialogue = 0;
-            this.loadScene(this.currentScene);
           }
           else{
             console.log('跳转章节[BE]')
@@ -318,7 +194,6 @@ export default {
             this.loadData(this.chapter);
             this.currentScene = 0;
             this.currentDialogue = 0;
-            this.loadScene(this.currentScene);
           }
         }else{
           this.Img = 'bg.png';
@@ -327,17 +202,18 @@ export default {
             this.loadData(this.chapter);
             this.currentScene = 0;
             this.currentDialogue = 0;
-            this.loadScene(this.currentScene);
           }, 3000);
         }
       }
     }
   },
   back(a){
-    if(a=='m'&&this.menu){this.menu = false}
-    else if(a.direction=='right'&&this.recovery!==0){this.recovery = 0}
-    else if(a.direction=='right'||a=='e'){router.replace({uri: "/pages/index"})}
-    else if(a.direction=='left'){this.menu = true}
+    if(a.direction=='right'||a=='c'){
+      if(this.recovery!==0){this.recovery = 0}
+      else if(this.menu){this.menu = false}
+      else{this.menu = true}
+    }
+    else if(a=='e'){router.replace({uri: "/pages/index"})}
   },
   // 选择选项
   selectChoice(choiceIndex) {
@@ -360,8 +236,10 @@ export default {
     }
     if(idx === 'new'){
       this.recoveryData.push(data);
+      prompt.showToast({message: '保存成功'})
     }else{
       this.recoveryData[idx] = data;
+      prompt.showToast({message: '覆盖成功'})
     }
     this.saveData()
   },
@@ -380,7 +258,6 @@ export default {
     this.recovery = 0;
     this.menu = false;
     this.loadData(this.chapter);
-    this.loadScene(this.currentScene);
   },
   skipScene(a){
     if(this.gameData.scenes[this.currentScene].dialogues[this.gameData.scenes[this.currentScene].dialogues.length-1].toScenes ==undefined && this.gameData.scenes[this.currentScene].choices==undefined && this.gameData.scenes[this.currentScene].dialogues[this.gameData.scenes[this.currentScene].dialogues.length-1].END==undefined && this.gameData.scenes[this.currentScene].dialogues[this.gameData.scenes[this.currentScene].dialogues.length-1].branch==undefined&&this.currentScene+a<this.gameData.scenes.length){
@@ -389,19 +266,24 @@ export default {
       this.menu = false;
     }else{
       this.menu = false;
-      prompt.showToast({message: '无法跳过'})
+      prompt.showToast({message: '重要剧情或结尾，无法跳过'})
     }
   },
-  skipChapter(a){
-    this.Img = 'bg.png';
-    this.menu = false;
-    setTimeout(() => {
-      this.chapter=a;
-      this.loadData(this.chapter);
-      this.currentScene = 0;
-      this.currentDialogue = 0;
-      this.loadScene(this.currentScene);
-    }, 3000);
+  skipChapter(){
+    if(this.chapter==2||this.chapter==19||this.chapter==25||this.chapter==26){
+      prompt.showToast({message: '重要章节无法跳过'})
+    }else if(this.chapter==31||this.chapter=='TE'||this.chapter=='BE'){
+      prompt.showToast({message: '最后一章无法跳过'})
+    }else{
+      this.Img = 'bg.png';
+      this.menu = false;
+      setTimeout(() => {
+        this.chapter++;
+        this.loadData(this.chapter);
+        this.currentScene = 0;
+        this.currentDialogue = 0;
+      }, 3000);
+    }
   },
   saveData(){
     storage.set({

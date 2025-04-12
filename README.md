@@ -1,4 +1,4 @@
-# ATRI-miband9P
+# ATRI-miband
 # 小米开源文档
 <https://iot.mi.com/vela/quickapp>
 ## 下载

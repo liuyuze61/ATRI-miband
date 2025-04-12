@@ -1,12 +1,11 @@
 # ATRI-miband
-# 小米开源文档
+## 小米开源文档
 <https://iot.mi.com/vela/quickapp>
-## 下载
-<https://www.bandbbs.cn/threads/15782/>
-### 转换脚本parse_script
+
+## 转换脚本parse_script
 将scn解出的json文件转换为convert_script输入格式
 
-### 转换脚本convert_script
+## 转换脚本convert_script
 用法：
 
  	python convert_script.py input文件夹 output文件夹

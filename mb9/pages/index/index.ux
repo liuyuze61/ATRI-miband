@@ -1,0 +1,290 @@
+<template>
+  <div class="page" @swipe="ban">
+    <image src="/common/bg.png" style="position: absolute;top: 0;left:0px"></image>
+    <image src="/common/ATRI.png" @click="checkRecoveryData()" style="position: absolute;top: 68px;left: 0px;"></image>
+    <text class="btn" style="top: 207px;" if="{{trueEnd}}" @click="loadRecoveryData('TE')">TRUE END</text>
+    <text class="btn" style="top: 273px;" @click="toPage('detail')">START</text>
+    <text class="btn" style="top: 318px;" @click="toRecovery()">LOAD</text>
+    <text class="btn" style="top: 363px;" @click="toSettings()">SYSTEM</text>
+    <text class="btn" style="top: 408px;" @click="exit">EXIT</text>
+    <div class="page" style="position: absolute;background-color: #ffffff;" if="{{recovery}}" @swipe="back()">
+      <scroll scroll-y="true" bounces="true" class="scroll1 page">
+        <text class="menu-btn">点击读取存档</text>
+        <text class="menu-btn" for="{{recoveryData}}" style="font-size: 30px;" @click="loadRecoveryData($idx)">存档{{$idx+1}}</text>
+      </scroll>
+    </div>
+    <div class="page" style="position: absolute;background-color: #ffffff;" if="{{settingsPage}}" @swipe="ban()">
+      <image src="/common/ev000b.png" style="position: absolute;top: 0;left: 0;"></image>
+      <image style="position: absolute;top: 325px;left: 0;" src="/common/text_bg.png"></image>
+      <text class="text">显示速度({{settings.textSpeed}})：</text>
+      <slider class="slider" min="20" max="60" step="1" onchange="changeTextSpeed()"></slider>
+      <text class="text" style="top: 163px">文字大小({{settings.textSize}})：</text>
+      <slider class="slider" style="top: 217px" min="20" max="36" step="1" onchange="changeTextSize()"></slider>
+      <text class="text" style="top: 17px;left: 31px;" @click="saveSettings()">保存</text>
+      <text class="text" style="top: 17px;left: 114px;" @click="back()">退出</text>
+      <scroll scroll-y="true" bounces="true" class="scroll">
+        <text style="color: #FFFFFF;font-weight: bold;width: 100%;text-align: left;font-size: {{settings.textSize}}px;">{{showText}}</text>
+      </scroll>
+    </div>
+    <div class="page" style="position: absolute;background-color: #ffffff;flex-wrap: nowrap;flex-direction: column;align-items: center;justify-content: center;" if="{{tips}}" @swipe="ban()">
+      <text class="font20">在"SYSTEM"中调整显示速度和文字大小</text>
+      <text class="font20">游戏中左滑进入菜单，右滑返回</text>
+      <text class="font20" style="color: #ff0000;">请勿反复点击START！耐心等待加载</text>
+      <text class="font20" style="color: #ff0000;">有能力请支持正版</text>
+      <text class="font20">---------------</text>
+      <text class="font20">制作：@liuyuze61</text>
+      <text class="font20">感谢：@Wxz226，@TLE</text>
+      <text class="font20">---------------</text>
+      <text class="font20" style="color: #00a2ff;" @click="closeTips()">确定</text>
+    </div>
+    <scroll scroll-y="true" class="page" if="{{dataError!==null}}" style="position: absolute;background-color: #ffffff;flex-wrap: nowrap;flex-direction: column;" @swipe="ban()">
+      <text>-</text>
+      <text>-</text>
+      <text>存档{{dataError+1}}异常,请重新选择,以修复存档</text>
+      <text style="color: #ff0000;">因技术原因，无法得知该存档已经选择了几个选项，所以未选择的选项请不要选择</text>
+      <text>---------------</text>
+      <text>1.</text>
+      <text style="color: {{reChoose[0] === 0 ? '#ff0000' : '#000000'}}" @click="choose(0,0)">把亚托莉交出去</text>
+      <text style="color: {{reChoose[0] === 1 ? '#ff0000' : '#000000'}}" @click="choose(0,1)">亚托莉先放在我这</text>
+      <text>2.</text>
+      <text style="color: {{reChoose[1] === 0 ? '#ff0000' : '#000000'}}" @click="choose(1,0)">静静的看她</text>
+      <text style="color: {{reChoose[1] === 1 ? '#ff0000' : '#000000'}}" @click="choose(1,1)">吻她</text>
+      <text>3.</text>
+      <text style="color: {{reChoose[2] === 0 ? '#ff0000' : '#000000'}}" @click="choose(2,0)">捡起鞋子</text>
+      <text style="color: {{reChoose[2] === 1 ? '#ff0000' : '#000000'}}" @click="choose(2,1)">放着不管</text>
+      <text>---------------</text>
+      <text @click="clearChoice">重新选择</text>
+      <text @click="inputChoice">确定</text>
+      <text>-</text>
+      <text>-</text>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router";
+import storage from '@system.storage';
+import prompt from '@system.prompt';
+
+export default {
+  private: {
+    recovery: false,
+    recoveryData: [
+      // {chapter: 16,currentScene: 20,currentDialogue: 1,choice: undefined},
+    ],
+    settingsPage: false,
+    settings: {
+      textSpeed: 40,
+      textSize: 22
+    },
+    showText: '',
+    index: 0,
+    tips: false,
+    trueEnd: false,
+    dataError: null,
+    reChoose:[-1,-1,-1],
+  },
+  onInit(){
+    storage.get({
+      key: 'recoveryData',
+      success: (data) => {
+        if(data){
+          this.recoveryData = JSON.parse(data);
+          this.checkRecoveryData();
+        }
+      },
+      fail:()=>{},
+    });
+    storage.get({
+      key: 'settings',
+      success: (data) => {
+        if(data){
+          this.settings = JSON.parse(data);
+        }
+      },
+      fail:()=>{},
+    });
+    storage.get({
+      key: 'tips',
+      success: (data) => {
+        if(data){
+          if(JSON.parse(data) !== 61){
+            this.tips = true;
+          }
+        }else{
+          this.tips = true;
+        }
+      },
+      fail:()=>{},
+    });
+    storage.get({
+      key: 'fin',
+      success: (data) => {
+        if(data){
+          const fin = JSON.parse(data);
+          console.log(fin)
+          if(fin.HE === true&&fin.BE === true){this.trueEnd = true}
+        }
+      },
+      fail:()=>{},
+    });
+  },
+  toPage(page) {
+    router.push({uri: `pages/${page}`})
+  },
+  exit(){
+    this.$app.exit()
+  },
+  ban(){
+    console.log('ban')
+  },
+  toRecovery(){
+    if(this.recoveryData.length>0){this.recovery = true}
+  },
+  toSettings(){
+    this.settingsPage = true;
+    this.zhuzi();
+  },
+  back(a){
+    if(a.direction=='right'&&this.recovery){this.recovery = false}
+    else if(this.settingsPage){this.settingsPage = false}
+  },
+  loadRecoveryData(idx){
+    router.push({
+      uri: `pages/detail`,
+      params:{load: idx}
+    })
+  },
+  changeTextSize(e){
+    this.settings.textSize = e.progress;
+  },
+  changeTextSpeed(e){
+    this.settings.textSpeed = e.progress;
+  },
+  zhuzi(){
+    const text = `Atri -My Dear Moments-\n文字显示样本`
+    if (this.index < text.length){
+      this.showText += text.charAt(this.index);
+      this.index++;
+      setTimeout(() => {this.zhuzi()}, this.settings.textSpeed)
+    }
+    else{
+      if(this.settingsPage){
+        setTimeout(() => {
+          this.index = 0;
+          this.showText = '';
+          this.zhuzi()
+        }, 2000);
+      }
+    }
+  },
+  saveSettings(){
+    storage.set({
+      key: 'settings',
+      value: JSON.stringify(this.settings),
+      success: () => {prompt.showToast({message: '保存成功'})},
+      fail:()=>{},
+    })
+  },
+  closeTips(){
+    this.tips = false;
+    storage.set({
+      key: 'tips',
+      value: JSON.stringify(61),
+      success: () => {},
+      fail:()=>{},
+    })
+  },
+  checkRecoveryData() {
+    for (let i = 0; i < this.recoveryData.length; i++) {
+      if (this.recoveryData[i].choice === null || this.recoveryData[i].choice === undefined) {
+        this.dataError = i;
+        break;
+      }
+    }
+  },
+  choose(idx, choice){
+    this.reChoose[idx] = choice;
+  },
+  clearChoice(){
+    this.reChoose = [-1,-1,-1];
+  },
+  inputChoice(){
+    this.recoveryData[this.dataError].choice = this.reChoose.filter(choice => {return choice !== -1});
+    storage.set({
+      key: 'recoveryData',
+      value: JSON.stringify(this.recoveryData),
+      success: () => {
+        this.dataError = null;
+        this.reChoose = [-1,-1,-1];
+      },
+      fail:()=>{},
+    })
+  }
+}
+</script>
+
+<style>
+.page {
+  width: 192px;
+  height: 490px;
+}
+.btn {
+  position: absolute;
+  font-size: 34px;
+  left: 11px;
+  font-weight: bold;
+  color: #0A55BC;
+}
+.scroll1{
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  align-items: center;
+}
+.menu-btn {
+  width: 164px;
+  height: 61px;
+  background-color: rgba(80, 192, 231, 0.7);
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.scroll{
+  position: absolute;
+  bottom: 0;
+  top: 335px;
+  left: 8px;
+  right: 0;
+  width: 182px;
+  height: 155px;
+  overflow: hidden;
+  flex-wrap: wrap;
+}
+.slider{
+    position: absolute;
+    width: 182px;
+    top: 125px;
+    left: 5px;
+}
+.text {
+  position: absolute;
+  font-size: 24px;
+  color: #FFFFFF;
+  top: 71px;
+  left: 4px;
+  font-weight: bold;
+}
+.font20 {
+  font-size: 20px;
+  color: #000000;
+  font-weight: bold;
+}
+</style>

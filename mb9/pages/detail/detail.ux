@@ -86,15 +86,12 @@ export default {
       success: (data) => {
         if(data){
           this.recoveryData = JSON.parse(data);
-          if(this.load){
+        }
+        if(this.load){
             if(this.load === 'TE'){
               this.loadData("TE");
             }
             else{this.loadRecoveryData(this.load)}
-          }
-          else{
-            this.loadData(this.chapter);
-          }
         }else{
           this.loadData(this.chapter);
         }

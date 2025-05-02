@@ -1,0 +1,53 @@
+{
+  "name": "ATRI",
+  "version": "1.5.0",
+  "description": "",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "start": "aiot server --watch --open-nuttx",
+    "build": "aiot build --enable-jsc",
+    "release": "aiot release --enable-jsc",
+    "watch": "aiot watch --open-nuttx",
+    "lint": "eslint --format codeframe --fix --ext .ux,.js src/"
+  },
+  "lint-staged": {
+    "*.{ux,js}": [
+      "prettier --write",
+      "eslint --format codeframe --fix",
+      "git add"
+    ],
+    "*.{less,css}": [
+      "prettier --write",
+      "stylelint --fix --custom-syntax postcss-less",
+      "git add"
+    ]
+  },
+  "devDependencies": {
+    "@aiot-toolkit/velasim": "^0.1.26-beta.3",
+    "aiot-toolkit": "1.1.0",
+    "@aiot-toolkit/jsc": "^1.0.3",
+    "ux-types": "^0.1.1",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^6.0.0",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-ux": "^0.0.4",
+    "husky": "^8.0.1",
+    "less": "^3.12.2",
+    "less-loader": "^6.2.0",
+    "lint-staged": "^8.2.1",
+    "postcss-html": "^1.3.0",
+    "postcss-less": "^6.0.0",
+    "prettier": "^2.7.1",
+    "eslint-import-resolver-node": "^0.3.7",
+    "eslint-plugin-import": "^2.27.5",
+    "stylelint": "^14.5.3",
+    "stylelint-config-recess-order": "^3.0.0",
+    "stylelint-config-standard": "^25.0.0",
+    "stylelint-order": "^5.0.0",
+    "@commitlint/cli": "^17.3.0",
+    "@commitlint/config-conventional": "^17.3.0"
+  }
+}

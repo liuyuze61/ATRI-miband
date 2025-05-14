@@ -20,3 +20,6 @@
 		说完我才想起来，早饭已经被她吃光了。
 	水菜萌	上……上午好——
 		这时，船外传来了另一道声音。
+
+## 其它galgame移植
+https://github.com/liuyuze61/Asunabi-miband

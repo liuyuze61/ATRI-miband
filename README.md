@@ -21,5 +21,8 @@
 	水菜萌	上……上午好——
 		这时，船外传来了另一道声音。
 
+## 剧本可视化编辑器
+https://singularpoint.cn/script-editor.html
+
 ## 其它galgame移植
 https://github.com/liuyuze61/Asunabi-miband
